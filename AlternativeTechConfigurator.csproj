@@ -34,6 +34,9 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\..\GitHub\KSPPersistentTrails\References\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\..\..\..\..\Spiele\KSP 0.24.2 - Tinkertech\KSP_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -50,7 +53,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "C:\Users\Gregor\Documents\Visual Studio 2012\Projects\KSP\TinkerTech2\TechChanger\bin\Release\ATC.dll" "C:\Spiele\KSP 0.24.2 - Tinkertech\GameData\ATC"</PostBuildEvent>
+    <PostBuildEvent>copy "C:\Users\Gregor\Documents\GitHub\KSPAlternativeTechConfigurator\bin\Release\ATC.dll" "C:\Spiele\KSP 0.24.2 - Tinkertech\GameData\ATC"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
