@@ -1,0 +1,174 @@
+//All stock gameObjectNames for reference
+//
+//node0_start 
+//node1_basicRocketry 
+//node2_generalRocketry 
+//node2_stability 
+//node2_survivability 
+//node3_advRocketry 
+//node3_flightControl 
+//node3_generalConstruction 
+//node3_scienceTech 
+//node4_advConstruction 
+//node4_advFlightControl 
+//node4_aerodynamicSystems 
+//node4_electrics 
+//node4_fuelSystems 
+//node4_heavyRocketry 
+//node4_landing 
+//node4_spaceExploration 
+//node5_actuators 
+//node5_advElectrics 
+//node5_advExploration 
+//node5_advLanding 
+//node5_heavierRocketry 
+//node5_precisionEngineering 
+//node5_specializedConstruction 
+//node5_specializedControl 
+//node5_supersonicFlight 
+//node6_advAerodynamics 
+//node6_advMetalWorks 
+//node6_composites 
+//node6_electronics 
+//node6_fieldScience 
+//node6_highAltitudeFlight 
+//node6_ionPropulsion 
+//node6_largeControl 
+//node6_largeElectrics 
+//node6_nuclearPropulsion 
+//node6_unmannedTech 
+//node7_advancedMotors 
+//node7_advScienceTech 
+//node7_advUnmanned 
+//node7_heavyAerodynamics 
+//node7_hypersonicFlight 
+//node7_largeprobes 
+//node7_metaMaterials 
+//node7_specializedElectrics 
+//node7_veryHeavyRocketry 
+//node8_aerospaceTech 
+//node8_automation 
+//node8_experimentalAerodynamics 
+//node8_experimentalElectrics 
+//node8_experimentalMotors 
+//node8_experimentalRocketry 
+//node8_experimentalScience 
+//node8_nanolathing
+//node8_robotics 
+
+
+//All RDNode.Icon names for reference
+//GENERIC
+//ADVEXPLORATION
+//FIELDSCIENCE
+//ADVCONSTRUCTION
+//ADVELECTRICS
+//ADVFLIGHTCONTROL
+//ADVLANDING
+//ADVMETALWORKS
+//ADVROCKETRY
+//ADVUNMANNED
+//AERODYNAMICSYSTEMS
+//BASICPROBES
+//BASICROCKETRY
+//COMPOSITES
+//ELECTRICMOTORS
+//ELECTRICS
+//ELECTRONICS
+//EVATECH
+//FLIGHTCONTROL
+//FUELSYSTEMS
+//GENERALCONSTRUCTION
+//GENERALROCKETRY
+//HEAVIERROCKETRY
+//HEAVYROCKETRY
+//HIGHALTITUDEPROPULSION
+//HYPERSONICFLIGHT
+//IONPROPULSION
+//LANDING
+//LARGECONTROL
+//LARGEPROBES
+//NUCLEARPROPULSION
+//PRECISIONENGINEERING
+//SCIENCETECH
+//SPECIALIZEDCONSTRUCTION
+//SPECIALIZEDCONTROL
+//SPECIALIZEDELECTRICS
+//STABILITY
+//START
+//SUPERSONICFLIGHT
+//SURVIVABILITY
+//UNMANNEDTECH
+//VERYHEAVYROCKETRY
+//LARGEELECTRICS
+//ADVAERODYNAMICS
+//ADVSCIENCETECH
+//AEROSPACETECH
+//AUTOMATION
+//EXPERIMENTALAERODYNAMICS
+//EXPERIMENTALELECTRICS
+//EXPERIMENTALMOTORS
+//EXPERIMENTALROCKETRY
+//EXPERIMENTALSCIENCE
+//HEAVYAERODYNAMICS
+//HIGHALTITUDEFLIGHT
+//METAMATERIALS
+//ROBOTICS
+//NANOLATHING
+//ADVANCEDMOTORS
+
+All Stocknode positions for reference:
+Node node8_nanolathing at (-475.6, 1037.2, -1.0)
+Node node8_automation at (-475.6, 827.1, -1.0)
+Node node8_robotics at (-475.6, 744.2, -1.0)
+Node node8_experimentalMotors at (-475.6, 500.0, -1.0)
+Node node8_experimentalScience at (-475.6, 574.0, -1.0)
+Node node8_experimentalAerodynamics at (-475.6, 969.6, -1.0)
+Node node8_experimentalElectrics at (-475.6, 665.4, -1.0)
+Node node8_aerospaceTech at (-475.6, 897.7, -1.0)
+Node node8_experimentalRocketry at (-475.6, 1249.0, -1.0)
+Node node6_advAerodynamics at (-833.0, 969.6, -1.0)
+Node node7_advScienceTech at (-635.0, 574.0, -1.0)
+Node node7_advUnmanned at (-635.0, 788.5, -1.0)
+Node node7_specializedElectrics at (-635.0, 665.4, -1.0)
+Node node5_actuators at (-1043.0, 1037.2, -1.0)
+Node node7_hypersonicFlight at (-635.0, 897.7, -1.0)
+Node node7_advancedMotors at (-635.0, 500.0, -1.0)
+Node node6_advMetalWorks at (-833.0, 1121.0, -1.0)
+Node node6_largeControl at (-833.0, 844.1, -1.0)
+Node node6_unmannedTech at (-833.0, 788.2, -1.0)
+Node node6_highAltitudeFlight at (-833.0, 897.7, -1.0)
+Node node6_electronics at (-833.0, 608.0, -1.0)
+Node node6_largeElectrics at (-833.0, 665.4, -1.0)
+Node node5_supersonicFlight at (-1043.0, 932.9, -1.0)
+Node node7_veryHeavyRocketry at (-635.0, 1249.0, -1.0)
+Node node6_ionPropulsion at (-833.0, 722.2, -1.0)
+Node node6_nuclearPropulsion at (-833.0, 1184.8, -1.0)
+Node node6_fieldScience at (-833.0, 532.5, -1.0)
+Node node6_composites at (-833.0, 1037.2, -1.0)
+Node node7_heavyAerodynamics at (-635.0, 969.6, -1.0)
+Node node7_metaMaterials at (-635.0, 1121.0, -1.0)
+Node node5_advLanding at (-1043.0, 493.1, -1.0)
+Node node4_aerodynamicSystems at (-1247.0, 897.7, -1.0)
+Node node5_specializedConstruction at (-1043.0, 1121.0, -1.0)
+Node node5_heavierRocketry at (-1043.0, 1249.0, -1.0)
+Node node5_specializedControl at (-1045.2, 844.1, -1.0)
+Node node5_advElectrics at (-1043.0, 665.4, -1.0)
+Node node5_precisionEngineering at (-1043.0, 753.5, -1.0)
+Node node5_advExploration at (-1043.0, 580.9, -1.0)
+Node node4_fuelSystems at (-1247.0, 1121.0, -1.0)
+Node node4_heavyRocketry at (-1247.0, 1249.0, -1.0)
+Node node4_landing at (-1247.0, 493.0, -1.0)
+Node node4_spaceExploration at (-1247.0, 580.6, -1.0)
+Node node4_electrics at (-1247.0, 665.4, -1.0)
+Node node4_advFlightControl at (-1247.0, 796.7, -1.0)
+Node node4_advConstruction at (-1247.0, 1037.3, -1.0)
+Node node3_flightControl at (-1470.0, 796.7, -1.0)
+Node node3_generalConstruction at (-1470.0, 1037.4, -1.0)
+Node node3_scienceTech at (-1470.0, 580.7, -1.0)
+Node node3_advRocketry at (-1470.0, 1184.8, -1.0)
+Node node2_stability at (-1693.9, 896.6, -1.0)
+Node node2_survivability at (-1732.9, 699.7, -1.0)
+Node node2_generalRocketry at (-1652.2, 1074.5, -1.0)
+Node node1_basicRocketry at (-1901.2, 896.6, -1.0)
+Node node0_start at (-2022.4, 896.6, -1.0)
