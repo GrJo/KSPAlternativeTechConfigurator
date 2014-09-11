@@ -406,62 +406,64 @@ namespace ATC
             //find main direction from outgoing node (parent) to target (connectionOwner) node to set anchor tags
             //Exception: Cannot display incoming and outgoing nodes on the same anchor
             Vector3 connectionVec = target.transform.localPosition - source.transform.localPosition;
-            //Debug.Log("setting up anchors for connection " + source.gameObject.name + "->" + target.gameObject.name+ ", direction = " + connectionVec.ToString());
-            
+    
             //calculate/setup anchors
             List<RDNode.Anchor> possibleParentAnchors = new List<RDNode.Anchor>();
+            List<RDNode.Anchor> possibleTargetAnchors = new List<RDNode.Anchor>();
 
-            if (connectionVec.x >= 0) //left to right
-                possibleParentAnchors.Add(RDNode.Anchor.RIGHT);
+            if (connectionVec.x >= 0)
+            {//left to right
+                if (isAnchorAvailableForOutgoingArrows(source, RDNode.Anchor.RIGHT))
+                    possibleParentAnchors.Add(RDNode.Anchor.RIGHT);
+                possibleTargetAnchors.Add(RDNode.Anchor.LEFT);
+            }
             else
-                possibleParentAnchors.Add(RDNode.Anchor.LEFT);
+            {
+                if (isAnchorAvailableForOutgoingArrows(source, RDNode.Anchor.LEFT))
+                    possibleParentAnchors.Add(RDNode.Anchor.LEFT);
+                possibleTargetAnchors.Add(RDNode.Anchor.RIGHT);
+            }
 
             if (connectionVec.y >= 0) //up
-                possibleParentAnchors.Add(RDNode.Anchor.TOP);
-            else
-                possibleParentAnchors.Add(RDNode.Anchor.BOTTOM);
-
+            {
+                if (isAnchorAvailableForOutgoingArrows(source, RDNode.Anchor.TOP))
+                    possibleParentAnchors.Add(RDNode.Anchor.TOP);
+                possibleTargetAnchors.Add(RDNode.Anchor.BOTTOM);
+            }
+            else // TOP-DOWN connection doesnt work because of parent or target anchor 
+            {
+                //TOP->LEFT doesnt work either
+                //possibleParentAnchors.Add(RDNode.Anchor.BOTTOM);
+                possibleTargetAnchors.Add(RDNode.Anchor.TOP);
+            }
             
-            //filter by availability constraints from parent incoming occupied anchors
-            if (!isAnchorAvailableForOutgoingArrows(source, possibleParentAnchors[1]))
-                possibleParentAnchors.RemoveAt(1);
-            if (!isAnchorAvailableForOutgoingArrows(source, possibleParentAnchors[0]))
-                possibleParentAnchors.RemoveAt(0);
 
             //Debug.Log("options remaining after filtering: " + possibleParentAnchors.Count());
             //foreach (RDNode.Anchor anchor in possibleParentAnchors)
             //    Debug.Log("available anchor: " + anchor);
 
             //if two options are available, pick the larger distance
-            RDNode.Anchor selectedParentAnchor = RDNode.Anchor.RIGHT; //default fallback
-            if (possibleParentAnchors.Count == 0)
-                Debug.LogWarning("no valid anchor for connection " + source.gameObject.name + "->" + target.gameObject.name + ", direction = " + connectionVec.ToString());
-            else if (possibleParentAnchors.Count == 1)
-                selectedParentAnchor = possibleParentAnchors.ElementAt(0);
-            else
-            {
-                if (Math.Abs(connectionVec.x) > Math.Abs(connectionVec.y)) //left-right connection, prefer first
-                    selectedParentAnchor = possibleParentAnchors.ElementAt(0);
-                else
-                    selectedParentAnchor = possibleParentAnchors.ElementAt(1);
+            if (Math.Abs(connectionVec.x) < Math.Abs(connectionVec.y)) //preferrably vertical            {
+            {    
+                possibleParentAnchors.Reverse();
+                possibleTargetAnchors.Reverse();
             }
 
-            
-            RDNode.Anchor targetAnchor;
-            if (selectedParentAnchor == RDNode.Anchor.BOTTOM)
-                targetAnchor = RDNode.Anchor.TOP;
-            else if (selectedParentAnchor == RDNode.Anchor.TOP)
-                targetAnchor = RDNode.Anchor.BOTTOM;
-            else if (selectedParentAnchor == RDNode.Anchor.LEFT)
-                targetAnchor = RDNode.Anchor.RIGHT;
-            else //if (selectedParentAnchor == RDNode.Anchor.RIGHT)
-                targetAnchor = RDNode.Anchor.LEFT;
+            if (possibleParentAnchors.Count == 0 || possibleTargetAnchors.Count == 0)
+            {
+                Debug.LogWarning("no valid anchor for connection " + source.gameObject.name + "->" + target.gameObject.name + ", direction = " + connectionVec.ToString());
+                if (possibleParentAnchors.Count == 0)
+                    possibleParentAnchors.Add(RDNode.Anchor.RIGHT);
+                if (possibleTargetAnchors.Count == 0)
+                    possibleParentAnchors.Add(RDNode.Anchor.LEFT);
+            }
 
 
-            //Debug.Log("Selected start anchor " + selectedParentAnchor);
 
-            connection.anchor = targetAnchor;
-            connection.parent.anchor = selectedParentAnchor;
+            Debug.Log("setting up anchors for connection " + source.gameObject.name + "->" + target.gameObject.name+ ", direction = " + connectionVec.ToString() + " anchors : " + possibleParentAnchors.First() + " -> " + possibleTargetAnchors.First());
+        
+            connection.anchor = possibleTargetAnchors.First();
+            connection.parent.anchor = possibleParentAnchors.First();
         }
 
         private RDNode createNode()
