@@ -57,9 +57,11 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "C:\Users\Gregor\Documents\GitHub\KSPAlternativeTechConfigurator\bin\Release\ATC.dll" "C:\Spiele\KSP 0.24.2 - Tinkertech\GameData\ATC"
+    <PostBuildEvent>copy "$(TargetPath)" "$(ProjectDir)\ReleasePackage\GameData\ATC"
 
-copy "C:\Users\Gregor\Documents\GitHub\KSPAlternativeTechConfigurator\bin\Release\ATC.dll" "C:\Spiele\KSP 0.24.2 - ATCTest\GameData\ATC"</PostBuildEvent>
+copy "$(TargetPath)" "C:\Spiele\KSP 0.24.2 - Tinkertech\GameData\ATC"
+
+copy "$(TargetPath)" "C:\Spiele\KSP 0.24.2 - ATCTest\GameData\ATC"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
