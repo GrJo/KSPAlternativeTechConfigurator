@@ -13,7 +13,6 @@ namespace ATC
     class TechChanger : MonoBehaviour
     {
         bool loadOnNextUpdate = false;
-        //bool updateGraphics = false;
 
         static bool bIsInstantiated = false;
         static bool bRemoveEventsOnDestroy = true;
@@ -23,19 +22,10 @@ namespace ATC
         string debugCombo = "^D";
         string reloadCombo = "^R";
 
-        //List<string> addedNewNodes = new List<string>();
 
         void Start()
         {
-            //Debug.Log("ATC: Nonpublic MethodInfo for AssetBase");
-            //foreach (MethodInfo info in typeof(AssetBase).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance))
-            //{
-            //    string paramstr = "";
-            //    foreach (ParameterInfo paramInfo in info.GetParameters())
-            //        paramstr += paramInfo.ToString() + ", ";
 
-            //    Debug.Log("Name: " + info.ToString() + " params = " + paramstr);
-            //}
 
             if (!bIsInstantiated)
             {
@@ -166,15 +156,12 @@ namespace ATC
 
                 setupBodyScienceParamsForTree( tree );
 
-                //foreach (AvailablePart debugPart in PartLoader.LoadedPartsList)
-                //    Debug.Log("Loaded AvailablePart: " + debugPart.name);
-
-                Debug.Log("processing all MODIFY_NODE items");
+                Debug.Log("ATC: processing all TECH_NODE items");
                 //check modify-nodes
                 foreach (ConfigNode cfgNodeModify in tree.GetNodes("TECH_NODE"))
                 {
                     string gameObjectName = cfgNodeModify.GetValue("name");
-                    Debug.Log("processing MODIFY_NODE " + gameObjectName);
+                    //Debug.Log("processing MODIFY_NODE " + gameObjectName);
                     RDNode treeNode = Array.Find<RDNode>(AssetBase.RnDTechTree.GetTreeNodes(), x => x.gameObject.name == gameObjectName);
 
                     if (treeNode.treeNode)
@@ -343,36 +330,7 @@ namespace ATC
                     newPos.y = float.Parse(cfgNode.GetValue("posY"));
 
                 treeNode.transform.localPosition = newPos;
-            }
-                      
-            //now get all parts
-            if (cfgNode.HasNode("PARTS"))
-            {
-                Debug.Log("checking PARTS");
-
-                treeNode.tech.partsAssigned.Clear();
-                
-
-                ConfigNode partsNode = cfgNode.GetNode("PARTS");
-                foreach (string partString in partsNode.GetValues("part"))
-                {
-                    AvailablePart part = PartLoader.LoadedPartsList.Find(x => x.name == internalizeName(partString));
-                    try
-                    {
-                        Debug.Log("found AvailablePart " + part.title + " with techRequired = " + part.TechRequired + ", changing to " + treeNode.tech.techID);
-
-                        part.TechRequired = treeNode.tech.techID;
-                        treeNode.tech.partsAssigned.Add(part);
-                    }
-                    catch (Exception)
-                    {
-                        Debug.LogWarning("ATC: part " + partString + " does not exist, skipping it!");
-                    }
-
-                }//endforeach part
-
-                treeNode.tech.partsPurchased.RemoveAll(x => x.TechRequired != treeNode.tech.techID);
-            }//endif has "PARTS" subnode
+            }          
 
         }
 
