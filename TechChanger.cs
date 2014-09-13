@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,10 +33,6 @@ namespace ATC
 
             //    Debug.Log("Name: " + info.ToString() + " params = " + paramstr);
             //}
-
-            settings = ConfigNode.Load("GameData/ATC/settings.cfg");
-
-            setupBodyScienceParams();
 
             if (!bIsInstantiated)
             {
@@ -134,28 +130,38 @@ namespace ATC
 
         private void LoadTree()
         {
-            //Unset all "techrequired" tags from all parts
-            foreach (AvailablePart part in PartLoader.LoadedPartsList)
-                part.TechRequired = "";
-
-            foreach (string treeName in settings.GetValues("TechTree"))
+            if (!ATCTreeDumper.m_bHasTreeAlreadyBeenDumped && ATCTreeDumper.m_bIsEnabled)
             {
-                ConfigNode tree = ConfigNode.Load(treeName);
+                ATCTreeDumper.DumpCurrentTreeToFile( "StockTree.cfg", "stock" );
+            }
+
+            settings = getActiveSettingCfg();
+
+            if (!settings.HasData)
+            {
+                return;
+            }
+
+            foreach (ConfigNode activeTreeCfg in settings.GetNodes("ACTIVE_TECH_TREE"))
+            {
+                ConfigNode tree = getTreeCfgForActiveTreeCfg(activeTreeCfg);
 
                 if (!tree.HasData)
                 {
-                    Debug.LogError("TechChanger: Treeconfig '" + settings.GetValue("TechTree") + "' empty/not found!");
+                    Debug.LogError("TechChanger: Treeconfig '" + activeTreeCfg.GetValue("name") + "' empty/not found!");
                     continue;
                 }
+
+                setupBodyScienceParamsForTree( tree );
 
                 //foreach (AvailablePart debugPart in PartLoader.LoadedPartsList)
                 //    Debug.Log("Loaded AvailablePart: " + debugPart.name);
 
                 Debug.Log("processing all MODIFY_NODE items");
                 //check modify-nodes
-                foreach (ConfigNode cfgNodeModify in tree.GetNodes("MODIFY_NODE"))
+                foreach (ConfigNode cfgNodeModify in tree.GetNodes("TECH_NODE"))
                 {
-                    string gameObjectName = cfgNodeModify.GetValue("gameObjectName");
+                    string gameObjectName = cfgNodeModify.GetValue("name");
                     Debug.Log("processing MODIFY_NODE " + gameObjectName);
                     RDNode treeNode = Array.Find<RDNode>(AssetBase.RnDTechTree.GetTreeNodes(), x => x.gameObject.name == gameObjectName);
 
@@ -272,7 +278,7 @@ namespace ATC
 
             if (cfgNode.HasValue("description"))
             {
-                treeNode.description = cfgNode.GetValue("description");
+                treeNode.description = cfgNode.GetValue("description").Replace( "\\n", "\n" );
                 treeNode.tech.description = treeNode.description;
             }
 
@@ -300,35 +306,20 @@ namespace ATC
 
 
             if (cfgNode.HasValue("anyParentUnlocks"))
-                treeNode.AnyParentToUnlock = cfgNode.GetValue("anyParentUnlocks") == "true";
+                treeNode.AnyParentToUnlock = bool.Parse(cfgNode.GetValue("anyParentUnlocks"));
+
+            if (cfgNode.HasValue("hideIfNoparts"))
+            {
+                treeNode.tech.hideIfNoParts = bool.Parse(cfgNode.GetValue("hideIfNoparts"));            
+            }
+            else
+            {
+                treeNode.tech.hideIfNoParts = false;
+            }
 
  
             //setup parent/child relations
-            if (cfgNode.HasNode("REQUIRES"))
-            {
-                Debug.Log("ATC: changing/setting up tech dependencies for " + treeNode.gameObject.name);
-
-                ConfigNode requiresNode = cfgNode.GetNode("REQUIRES");
-                //clear all old parents. The RD-Scene will take care of drawing the arrows
-                foreach (RDNode.Parent oldParent in treeNode.parents)
-                {
-                    oldParent.parent.node.children.Remove(treeNode);                  
-                }
-                Array.Clear(treeNode.parents, 0, treeNode.parents.Count());
-
-                List<RDNode.Parent> connectionList = new List<RDNode.Parent>();
-                foreach (string parentName in requiresNode.GetValues("tech"))
-                {
-                    RDNode parentNode = Array.Find<RDNode>(AssetBase.RnDTechTree.GetTreeNodes(), x => x.gameObject.name == parentName);
-                    parentNode.children.Add(treeNode);
-
-                    //create RDNode.Parent structure - anchors will be corrected once all nodes have been loaded
-                    RDNode.Parent connection = new RDNode.Parent(new RDNode.ParentAnchor(parentNode, RDNode.Anchor.LEFT), RDNode.Anchor.RIGHT);
-                    connectionList.Add(connection);
-
-                }
-                treeNode.parents = connectionList.ToArray();
-            }
+            updateParentsForNode(treeNode, cfgNode);
 
             if (cfgNode.HasValue("posX") || cfgNode.HasValue("posY"))
             {
@@ -455,7 +446,7 @@ namespace ATC
                 if (possibleParentAnchors.Count == 0)
                     possibleParentAnchors.Add(RDNode.Anchor.RIGHT);
                 if (possibleTargetAnchors.Count == 0)
-                    possibleParentAnchors.Add(RDNode.Anchor.LEFT);
+                    possibleTargetAnchors.Add(RDNode.Anchor.LEFT);
             }
 
 
@@ -538,25 +529,17 @@ namespace ATC
             }
         }
 
-        private void setupBodyScienceParams()
+        private void setupBodyScienceParamsForTree(ConfigNode tree)
         {
             Debug.Log("ATC: setupBodyScienceParams()");
-            foreach (string treeName in settings.GetValues("TechTree"))
+            foreach (string treeName in tree.GetValues("TechTree"))
             {
                 //Debug.Log("ATC: Loading tree " + treeName);
-
-                ConfigNode tree = ConfigNode.Load(treeName);
-
-                if (!tree.HasData)
-                {
-                    Debug.LogError("TechChanger: Treeconfig '" + settings.GetValue("TechTree") + "' empty/not found!");
-                    return;
-                }
 
                 foreach (ConfigNode scienceParamsNode in tree.GetNodes("BODY_SCIENCE_PARAMS"))
                 {
                     
-                    string bodyName = scienceParamsNode.GetValue("celestialBody");
+                    string bodyName = scienceParamsNode.GetValue("name");
                     //Debug.Log("Processing scienceParams for " + bodyName);
 
                     CelestialBody body = FlightGlobals.Bodies.Find(x => x.name == bodyName);
@@ -633,10 +616,85 @@ namespace ATC
 
             
         }
+
+        private ConfigNode getActiveSettingCfg()
+        {
+            // this can be expanded upon in the future so that a player-specific custom settings file will override the default one
+
+            return Array.Find<ConfigNode>(GameDatabase.Instance.GetConfigNodes("ATC_SETTINGS"), tempConfigNode => tempConfigNode.HasValue("name") && tempConfigNode.GetValue("name") == "default");
+        }
+
+        private ConfigNode getTreeCfgForActiveTreeCfg(ConfigNode activeTreeCfg)
+        {
+            print( "4.1" );
+            if ( activeTreeCfg.HasValue("name"))
+            {
+                print( "4.2" );
+                string treeName = activeTreeCfg.GetValue("name");
+
+                print( "4.3" );
+                return Array.Find<ConfigNode>(GameDatabase.Instance.GetConfigNodes("TECH_TREE"), 
+                    tempTreeConfigNode => tempTreeConfigNode.HasValue("name") && tempTreeConfigNode.GetValue("name") == treeName);            
+            }
+            else
+            {
+                // return an empty config node to indicate failure, same as Find()
+
+                print( "4.4" );
+                return new ConfigNode();
+            }
+        }
+
+        private void updateParentsForNode(RDNode treeNode, ConfigNode treeCfg)
+        {
+            //clear all old parents. The RD-Scene will take care of drawing the arrows
+            clearParentsFromNode( treeNode );
+
+            List<RDNode.Parent> connectionList = new List<RDNode.Parent>();
+
+            foreach (ConfigNode parentCfg in treeCfg.GetNodes("PARENT_NODE"))
+            {
+                if (parentCfg.HasValue("name"))
+                {
+                    string parentName = parentCfg.GetValue("name");
+
+                    RDNode parentNode = Array.Find<RDNode>(AssetBase.RnDTechTree.GetTreeNodes(), x => x.gameObject.name == parentName);
+
+                    if (parentNode.gameObject.name == parentName)
+                    {
+                        parentNode.children.Add(treeNode);
+
+                        //create RDNode.Parent structure - anchors will be corrected once all nodes have been loaded
+                        // FCNOTE: Fixed bug here where parent and child were reversed, so that child was getting RIGHT, and parent LEFT.  This
+                        // messed up the autoassignment code for the stock tree as some nodes were finding the RIGHT node occupied on the parent
+                        // for outgoing connections as it had been previously assigned as an incoming connection here, depending on the order in which the nodes were processed
+                        // Honestly, I think that issue is going to make auto-assign code impractical, as while I've fixed it for the default,
+                        // it's just going to apply to other directions now, unless some code for evalutating the overall tree is created.
+                        // Really, I think we should just be defaulting to the default right/left connection unless it is explicitly specified otherwise in the .cfg for the node
+                        RDNode.Parent connection = new RDNode.Parent(new RDNode.ParentAnchor(parentNode, RDNode.Anchor.RIGHT), RDNode.Anchor.LEFT);
+                        connectionList.Add(connection);
+                    }
+                    else
+                    {
+                        Debug.Log("ATC: Invalid parent node specified for: " + treeNode.gameObject.name + " parent: " + parentName);
+                    }
+                }
+
+            }
+
+            treeNode.parents = connectionList.ToArray();
+        }
+
+        private void clearParentsFromNode(RDNode treeNode)
+        {
+            foreach (RDNode.Parent oldParent in treeNode.parents)
+            {
+                oldParent.parent.node.children.Remove(treeNode);                  
+            }
+
+            Array.Clear(treeNode.parents, 0, treeNode.parents.Count());
+        }
     }
-
-
-
 }
 
 
