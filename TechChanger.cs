@@ -22,6 +22,7 @@ namespace ATC
         string debugCombo = "^D";
         string reloadCombo = "^R";
 
+        private List<RDNode.Parent> parentConnectionsAlreadyProcessed = new List<RDNode.Parent>();
 
         void Start()
         {
@@ -144,6 +145,8 @@ namespace ATC
             debugCombo = settings.GetValue("debugDumpKeyCombo");
             reloadCombo = settings.GetValue("reloadKeyCombo");
 
+            parentConnectionsAlreadyProcessed.Clear();
+
             foreach (ConfigNode activeTreeCfg in settings.GetNodes("ACTIVE_TECH_TREE"))
             {
                 ConfigNode tree = getTreeCfgForActiveTreeCfg(activeTreeCfg);
@@ -191,7 +194,10 @@ namespace ATC
 
                 for (int i = 0; i < rdNode.parents.Count(); ++i)
                 {
-                    setupAnchors(rdNode, ref rdNode.parents[i]);
+                    if (!parentConnectionsAlreadyProcessed.Contains(rdNode.parents[i]))
+                    {
+                        setupAnchors(rdNode, ref rdNode.parents[i]);
+                    }
                 }
             }          
         }
@@ -325,7 +331,6 @@ namespace ATC
                 treeNode.tech.hideIfNoParts = false;
             }
 
- 
             //setup parent/child relations
             updateParentsForNode(treeNode, cfgNode);
 
@@ -636,13 +641,10 @@ namespace ATC
 
         private ConfigNode getTreeCfgForActiveTreeCfg(ConfigNode activeTreeCfg)
         {
-            print( "4.1" );
             if ( activeTreeCfg.HasValue("name"))
             {
-                print( "4.2" );
                 string treeName = activeTreeCfg.GetValue("name");
 
-                print( "4.3" );
                 return Array.Find<ConfigNode>(GameDatabase.Instance.GetConfigNodes("TECH_TREE"), 
                     tempTreeConfigNode => tempTreeConfigNode.HasValue("name") && tempTreeConfigNode.GetValue("name") == treeName);            
             }
@@ -650,7 +652,6 @@ namespace ATC
             {
                 // return an empty config node to indicate failure, same as Find()
 
-                print( "4.4" );
                 return new ConfigNode();
             }
         }
@@ -674,8 +675,24 @@ namespace ATC
                     {
                         parentNode.children.Add(treeNode);
 
-                        //create RDNode.Parent structure - anchors will be corrected once all nodes have been loaded
-                        RDNode.Parent connection = new RDNode.Parent(new RDNode.ParentAnchor(parentNode, RDNode.Anchor.RIGHT), RDNode.Anchor.LEFT);
+                        RDNode.Parent connection;
+
+                        // only manually override the anchor points if BOTH are specified in the config
+                        if (parentCfg.HasValue("parentSide") && parentCfg.HasValue("childSide"))
+                        {
+                            RDNode.Anchor parentAnchor = (RDNode.Anchor)Enum.Parse(typeof(RDNode.Anchor), parentCfg.GetValue("parentSide"));
+                            RDNode.Anchor childAnchor = (RDNode.Anchor)Enum.Parse(typeof(RDNode.Anchor), parentCfg.GetValue("childSide"));
+
+                            connection = new RDNode.Parent(new RDNode.ParentAnchor(parentNode, parentAnchor), childAnchor);
+
+                            parentConnectionsAlreadyProcessed.Add( connection );
+                        }
+                        else
+                        {
+                            //create RDNode.Parent structure - anchors will be corrected once all nodes have been loaded
+                            connection = new RDNode.Parent(new RDNode.ParentAnchor(parentNode, RDNode.Anchor.RIGHT), RDNode.Anchor.LEFT);
+                        }
+
                         connectionList.Add(connection);
                     }
                     else
@@ -700,6 +717,3 @@ namespace ATC
         }
     }
 }
-
-
-
