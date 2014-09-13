@@ -183,8 +183,17 @@ namespace ATC
 
             }//end foreach tree-config
 
-            List<RDNode> processedNodes = new List<RDNode>();
-            setupAnchorsRecursive(findStartNode(), ref processedNodes);            
+
+            List<RDNode> topoSortedNodes = calculateTopologicalSorting();
+            foreach (RDNode rdNode in topoSortedNodes)
+            {
+                Debug.Log("setting up anchors for " + rdNode.gameObject.name);
+
+                for (int i = 0; i < rdNode.parents.Count(); ++i)
+                {
+                    setupAnchors(rdNode, ref rdNode.parents[i]);
+                }
+            }          
         }
 
         private void processNewNodes(ConfigNode tree)
@@ -285,7 +294,7 @@ namespace ATC
             if (cfgNode.HasValue("scienceCost"))
                 treeNode.tech.scienceCost = int.Parse(cfgNode.GetValue("scienceCost"));
 
-            Debug.Log("checking icon");
+            //Debug.Log("checking icon");
             if (cfgNode.HasValue("icon"))
             {
                 //bool success = Enum.TryParse<RDNode.Icon>(cfgNode.GetValue("icon"), out icon); //.NET >= 4.0
@@ -334,21 +343,52 @@ namespace ATC
 
         }
 
-        private void setupAnchorsRecursive(RDNode rdNode, ref List<RDNode> processedNodes)
+        private List<RDNode> calculateTopologicalSorting()
         {
-            if (processedNodes.Contains(rdNode))
-                return;
+            List<RDNode> sortedList = new List<RDNode>();
+            HashSet<RDNode> tempMarkedNodes = new HashSet<RDNode>();
+            HashSet<RDNode> markedNodes = new HashSet<RDNode>();
 
-            for (int i=0; i<rdNode.parents.Count(); ++i)
+            HashSet<RDNode> unmarkedNodes = new HashSet<RDNode>();
+            foreach (RDNode rdNode in AssetBase.RnDTechTree.GetTreeNodes())
             {
-                setupAnchors(rdNode, ref rdNode.parents[i]);
+                unmarkedNodes.Add(rdNode);
             }
-            processedNodes.Add(rdNode);
 
-            //now recursive for all children
-            foreach (RDNode child in rdNode.children)
-                setupAnchorsRecursive(child, ref processedNodes);
 
+            while (unmarkedNodes.Count > 0)
+            {
+                RDNode n = unmarkedNodes.First();
+                visitNode(n, ref sortedList, ref unmarkedNodes, ref markedNodes, ref tempMarkedNodes);
+            }
+
+            return sortedList;
+        }
+
+        private void visitNode(RDNode rdNode, ref List<RDNode> sortedList, ref HashSet<RDNode> unmarkedNodes, ref HashSet<RDNode> markedNodes, ref HashSet<RDNode> tempMarkedNodes)
+        {
+            //Debug.Log("TOPOSORT visiting " + rdNode.gameObject.name);
+            if (tempMarkedNodes.Contains(rdNode))
+            {
+                throw new Exception("ATC: Circular dependency in Tech-Node Graph! RDNode " + rdNode.gameObject.name + " is in a circular dependency with one of its direct or indirect parents");
+            }
+
+            if (!markedNodes.Contains(rdNode)) //this node has not been visited yet
+            {
+                tempMarkedNodes.Add(rdNode);
+
+                //DFS-search recursive for all children
+                foreach (RDNode child in rdNode.children)
+                    visitNode(child, ref sortedList, ref unmarkedNodes, ref markedNodes, ref tempMarkedNodes);
+
+                //Debug.Log("TOPOSORT marking node " + rdNode.gameObject.name);
+                markedNodes.Add(rdNode);
+                tempMarkedNodes.Remove(rdNode);
+
+                unmarkedNodes.Remove(rdNode);
+
+                sortedList.Insert(0, rdNode);//prepend to list
+            }
         }
 
         private bool isAnchorAvailableForOutgoingArrows(RDNode node, RDNode.Anchor anchor)
@@ -421,7 +461,7 @@ namespace ATC
 
 
 
-            Debug.Log("setting up anchors for connection " + source.gameObject.name + "->" + target.gameObject.name+ ", direction = " + connectionVec.ToString() + " anchors : " + possibleParentAnchors.First() + " -> " + possibleTargetAnchors.First());
+            Debug.Log("            anchors for connection " + source.gameObject.name + "->" + target.gameObject.name+ ", direction = " + connectionVec.ToString() + " anchors : " + possibleParentAnchors.First() + " -> " + possibleTargetAnchors.First());
         
             connection.anchor = possibleTargetAnchors.First();
             connection.parent.anchor = possibleParentAnchors.First();
@@ -635,12 +675,6 @@ namespace ATC
                         parentNode.children.Add(treeNode);
 
                         //create RDNode.Parent structure - anchors will be corrected once all nodes have been loaded
-                        // FCNOTE: Fixed bug here where parent and child were reversed, so that child was getting RIGHT, and parent LEFT.  This
-                        // messed up the autoassignment code for the stock tree as some nodes were finding the RIGHT node occupied on the parent
-                        // for outgoing connections as it had been previously assigned as an incoming connection here, depending on the order in which the nodes were processed
-                        // Honestly, I think that issue is going to make auto-assign code impractical, as while I've fixed it for the default,
-                        // it's just going to apply to other directions now, unless some code for evalutating the overall tree is created.
-                        // Really, I think we should just be defaulting to the default right/left connection unless it is explicitly specified otherwise in the .cfg for the node
                         RDNode.Parent connection = new RDNode.Parent(new RDNode.ParentAnchor(parentNode, RDNode.Anchor.RIGHT), RDNode.Anchor.LEFT);
                         connectionList.Add(connection);
                     }
