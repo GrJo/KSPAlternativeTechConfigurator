@@ -20,6 +20,9 @@ namespace ATC
 
         ConfigNode settings = new ConfigNode();
 
+        string debugCombo = "^D";
+        string reloadCombo = "^R";
+
         //List<string> addedNewNodes = new List<string>();
 
         void Start()
@@ -64,17 +67,23 @@ namespace ATC
             bRemoveEventsOnDestroy = true;
         }
 
+        public void OnGUI()
+        {            
+            if (Event.current.Equals(Event.KeyboardEvent(debugCombo)))
+            {
+                Debug.Log("-------ATC Debug Dump triggered-----------------");
+                debugDump();
+            }
+
+            if (!loadOnNextUpdate && Event.current.Equals(Event.KeyboardEvent(reloadCombo)))
+            {
+                Debug.Log("-------ATC Reloading Tree triggered-----------------");
+                loadOnNextUpdate = true;     
+            }
+        }
+
         public void Update()
         {
-            if (Input.GetKeyDown(KeyCode.F7))
-                debugDump();
-
-            if (!loadOnNextUpdate && Input.GetKeyDown(KeyCode.F8))
-            {
-                Debug.Log("-------Reloading Tree triggered-----------------");
-                loadOnNextUpdate = true;        
-                //loadOnNextUpdate = true;
-            }
 
             if (loadOnNextUpdate)
             {
@@ -141,6 +150,9 @@ namespace ATC
             {
                 return;
             }
+
+            debugCombo = settings.GetValue("debugDumpKeyCombo");
+            reloadCombo = settings.GetValue("reloadKeyCombo");
 
             foreach (ConfigNode activeTreeCfg in settings.GetNodes("ACTIVE_TECH_TREE"))
             {
