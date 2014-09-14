@@ -194,10 +194,19 @@ namespace ATC
 
                 for (int i = 0; i < rdNode.parents.Count(); ++i)
                 {
-                    if (!parentConnectionsAlreadyProcessed.Contains(rdNode.parents[i]))
+                    if (parentConnectionsAlreadyProcessed.Contains(rdNode.parents[i]))
                     {
+                        Debug.Log("Skipping auto-anchor assignment for node " + rdNode.gameObject.name);                            
+                    }
+                    else {
                         setupAnchors(rdNode, ref rdNode.parents[i]);
                     }
+
+                    //warn for anchors that cannot be displayed properly. This might happen if a user-config overrides the auto-assignment. Or if the auto-assignment screws up
+                    if (rdNode.parents[i].parent.anchor == RDNode.Anchor.BOTTOM)
+                        Debug.LogWarning("ATC: Warning: Arrow from "+ rdNode.parents[i].parent.node.gameObject.name +"to"+ rdNode.gameObject.name +" will cannot be displayed because it uses parent anchor BOTTOM!");
+                    if (rdNode.parents[i].anchor == RDNode.Anchor.TOP)
+                        Debug.LogWarning("ATC: Warning: Arrow from " + rdNode.parents[i].parent.node.gameObject.name + "to" + rdNode.gameObject.name + " will cannot be displayed because it uses anchor TOP!"); 
                 }
             }          
         }
@@ -438,9 +447,9 @@ namespace ATC
             }
             else // TOP-DOWN connection doesnt work because of parent or target anchor 
             {
-                //TOP->LEFT doesnt work either
+                //neither does or BOTTOM->LEFT  RIGHT->TOP neiter
                 //possibleParentAnchors.Add(RDNode.Anchor.BOTTOM);
-                possibleTargetAnchors.Add(RDNode.Anchor.TOP);
+                //possibleTargetAnchors.Add(RDNode.Anchor.TOP);
             }
             
 
@@ -457,7 +466,7 @@ namespace ATC
 
             if (possibleParentAnchors.Count == 0 || possibleTargetAnchors.Count == 0)
             {
-                Debug.LogWarning("no valid anchor for connection " + source.gameObject.name + "->" + target.gameObject.name + ", direction = " + connectionVec.ToString());
+                Debug.LogWarning("no valid anchor for connection " + source.gameObject.name + "->" + target.gameObject.name + ", direction = " + connectionVec.ToString() + ", defaulting to anchors RIGHT->LEFT");
                 if (possibleParentAnchors.Count == 0)
                     possibleParentAnchors.Add(RDNode.Anchor.RIGHT);
                 if (possibleTargetAnchors.Count == 0)
@@ -680,9 +689,11 @@ namespace ATC
                         // only manually override the anchor points if BOTH are specified in the config
                         if (parentCfg.HasValue("parentSide") && parentCfg.HasValue("childSide"))
                         {
+                            
                             RDNode.Anchor parentAnchor = (RDNode.Anchor)Enum.Parse(typeof(RDNode.Anchor), parentCfg.GetValue("parentSide"));
                             RDNode.Anchor childAnchor = (RDNode.Anchor)Enum.Parse(typeof(RDNode.Anchor), parentCfg.GetValue("childSide"));
 
+                            Debug.Log("Overriding auto-assignment for node " + treeNode.gameObject.name + " to " + parentAnchor + "->" + childAnchor);
                             connection = new RDNode.Parent(new RDNode.ParentAnchor(parentNode, parentAnchor), childAnchor);
 
                             parentConnectionsAlreadyProcessed.Add( connection );
