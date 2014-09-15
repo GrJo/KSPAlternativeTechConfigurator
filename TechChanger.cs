@@ -190,7 +190,7 @@ namespace ATC
             List<RDNode> topoSortedNodes = calculateTopologicalSorting();
             foreach (RDNode rdNode in topoSortedNodes)
             {
-                Debug.Log("setting up anchors for " + rdNode.gameObject.name);
+                //Debug.Log("setting up anchors for " + rdNode.gameObject.name);
 
                 for (int i = 0; i < rdNode.parents.Count(); ++i)
                 {
@@ -475,7 +475,7 @@ namespace ATC
 
 
 
-            Debug.Log("            anchors for connection " + source.gameObject.name + "->" + target.gameObject.name+ ", direction = " + connectionVec.ToString() + " anchors : " + possibleParentAnchors.First() + " -> " + possibleTargetAnchors.First());
+            //Debug.Log("            anchors for connection " + source.gameObject.name + "->" + target.gameObject.name+ ", direction = " + connectionVec.ToString() + " anchors : " + possibleParentAnchors.First() + " -> " + possibleTargetAnchors.First());
         
             connection.anchor = possibleTargetAnchors.First();
             connection.parent.anchor = possibleParentAnchors.First();
@@ -556,7 +556,7 @@ namespace ATC
         private void setupBodyScienceParamsForTree(ConfigNode tree)
         {
             Debug.Log("ATC: setupBodyScienceParams()");
-            foreach (string treeName in tree.GetValues("TechTree"))
+            //foreach (string treeName in tree.GetValues("TechTree"))
             {
                 //Debug.Log("ATC: Loading tree " + treeName);
 
@@ -693,7 +693,7 @@ namespace ATC
                             RDNode.Anchor parentAnchor = (RDNode.Anchor)Enum.Parse(typeof(RDNode.Anchor), parentCfg.GetValue("parentSide"));
                             RDNode.Anchor childAnchor = (RDNode.Anchor)Enum.Parse(typeof(RDNode.Anchor), parentCfg.GetValue("childSide"));
 
-                            Debug.Log("Overriding auto-assignment for node " + treeNode.gameObject.name + " to " + parentAnchor + "->" + childAnchor);
+                            //Debug.Log("Overriding auto-assignment for node " + treeNode.gameObject.name + " to " + parentAnchor + "->" + childAnchor);
                             connection = new RDNode.Parent(new RDNode.ParentAnchor(parentNode, parentAnchor), childAnchor);
 
                             parentConnectionsAlreadyProcessed.Add( connection );
