@@ -22,6 +22,7 @@ namespace ATC
         string debugCombo = "^D";
         string reloadCombo = "^R";
 
+        private List<RDNode> nodesWithConfigEntries = new List<RDNode>();
         private List<RDNode.Parent> parentConnectionsAlreadyProcessed = new List<RDNode.Parent>();
 
         void Start()
@@ -145,6 +146,7 @@ namespace ATC
             debugCombo = settings.GetValue("debugDumpKeyCombo");
             reloadCombo = settings.GetValue("reloadKeyCombo");
 
+            nodesWithConfigEntries.Clear();
             parentConnectionsAlreadyProcessed.Clear();
 
             foreach (ConfigNode activeTreeCfg in settings.GetNodes("ACTIVE_TECH_TREE"))
@@ -170,6 +172,8 @@ namespace ATC
                     if (treeNode.treeNode)
                     {
                         updateNode(treeNode, cfgNodeModify);
+
+                        nodesWithConfigEntries.Add( treeNode );
                     }
                     else
                     {
@@ -178,7 +182,6 @@ namespace ATC
 
                 }//end for all nodes;
 
-
                 //deactivated for now
                 //processNewNodes(tree);
                 
@@ -186,6 +189,7 @@ namespace ATC
 
             }//end foreach tree-config
 
+            deleteAbsentNodes();
 
             List<RDNode> topoSortedNodes = calculateTopologicalSorting();
             foreach (RDNode rdNode in topoSortedNodes)
@@ -196,7 +200,7 @@ namespace ATC
                 {
                     if (parentConnectionsAlreadyProcessed.Contains(rdNode.parents[i]))
                     {
-                        Debug.Log("Skipping auto-anchor assignment for node " + rdNode.gameObject.name);                            
+                        //Debug.Log("Skipping auto-anchor assignment for node " + rdNode.gameObject.name);                            
                     }
                     else {
                         setupAnchors(rdNode, ref rdNode.parents[i]);
@@ -717,6 +721,48 @@ namespace ATC
             treeNode.parents = connectionList.ToArray();
         }
 
+        private void deleteAbsentNodes()
+        {
+            // This function "removes" any stock nodes absent in the current tree so that they may be deleted through standard "!TECH_NODE[]" syntax, or simply omitted from a tree when creating it
+            // from scratch.  This should be done after all other processing as it will automatically update parent dependencies in other nodes so as to not reference deleted ones.
+
+            foreach (RDNode tempRDNode in AssetBase.RnDTechTree.GetTreeNodes())
+            {
+                if ( !nodesWithConfigEntries.Contains( tempRDNode ) )
+                {
+                    // this RDNode does not exist within the current tech tree.  Get rid of it.
+
+                    deleteRDNode(tempRDNode);
+                }
+            }
+        }
+
+        private void deleteRDNode(RDNode node)
+        {
+            // function to effectively remove stock RD nodes
+
+            node.tech.hideIfNoParts = true;
+
+            clearParentsFromNode(node);
+            clearChildrenFromNode(node);
+
+            // move node outside the visible area in case it contains parts already researched (purchased parts doesn't seem to be reliably initialized upon entering space center)
+
+            moveNode(node, 500, 0);
+
+            // clear all part assignments on both the node and part side
+
+            node.tech.partsAssigned.Clear();
+
+            foreach (AvailablePart tempPart in PartLoader.LoadedPartsList)
+            {
+                if (tempPart.TechRequired == node.tech.techID)
+                {
+                    tempPart.TechRequired = "unassigned";
+                }
+            }            
+        }
+
         private void clearParentsFromNode(RDNode treeNode)
         {
             foreach (RDNode.Parent oldParent in treeNode.parents)
@@ -724,7 +770,31 @@ namespace ATC
                 oldParent.parent.node.children.Remove(treeNode);                  
             }
 
-            Array.Clear(treeNode.parents, 0, treeNode.parents.Count());
+            treeNode.parents = new RDNode.Parent[0];
+        }
+
+        private void clearChildrenFromNode(RDNode treeNode)
+        {
+            foreach (RDNode tempChild in treeNode.children)
+            {
+                List<RDNode.Parent> childParentList = tempChild.parents.ToList();
+
+                childParentList.Remove(childParentList.Find(tempParentConnection => tempParentConnection.parent.node == treeNode));
+
+                tempChild.parents = childParentList.ToArray();
+            }
+
+            treeNode.children.Clear();
+        }
+
+        private void moveNode(RDNode treeNode, float xPos, float yPos)
+        {
+            Vector3 newPos = treeNode.transform.localPosition;
+
+            newPos.x = xPos;
+            newPos.y = yPos;
+
+            treeNode.transform.localPosition = newPos;
         }
     }
 }
