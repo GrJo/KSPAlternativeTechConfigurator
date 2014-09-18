@@ -85,7 +85,7 @@ namespace ATC
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log("ATC: Error Loading tree - " + ex.Message + " at " + ex.StackTrace);
+                    Debug.LogError("ATC: Error Loading tree - " + ex.Message + " at " + ex.StackTrace);
                 }
                 loadOnNextUpdate = false;
             }
@@ -356,7 +356,7 @@ namespace ATC
                 if (cfgNode.HasValue("posY"))
                     newPos.y = float.Parse(cfgNode.GetValue("posY"));
 
-                treeNode.transform.localPosition = newPos;
+                moveNode(treeNode, newPos.x, newPos.y);
             }          
 
         }
@@ -574,7 +574,7 @@ namespace ATC
                     //Debug.Log("found matching body " + body.
                     try
                     {
-                        Debug.Log("ATC: Modifying celestialBody science params for " + bodyName);
+                        //Debug.Log("ATC: Modifying celestialBody science params for " + bodyName);
                         //Science value factors
                         if (scienceParamsNode.HasValue("LandedDataValue"))
                             body.scienceValues.LandedDataValue = float.Parse(scienceParamsNode.GetValue("LandedDataValue"));
@@ -600,7 +600,7 @@ namespace ATC
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogError(ex);
+                        Debug.LogError("Error setting Science Params for celestial " + bodyName + ": Exception " + ex + " at " + ex.StackTrace);
                     }
                 }//endfor each celestialbody-string
             }//endfor each tree-configfile
@@ -671,6 +671,7 @@ namespace ATC
 
         private void updateParentsForNode(RDNode treeNode, ConfigNode treeCfg)
         {
+            //Debug.Log("updating parents for node " + treeNode.gameObject.name);
             //clear all old parents. The RD-Scene will take care of drawing the arrows
             clearParentsFromNode( treeNode );
 
@@ -684,8 +685,10 @@ namespace ATC
 
                     RDNode parentNode = Array.Find<RDNode>(AssetBase.RnDTechTree.GetTreeNodes(), x => x.gameObject.name == parentName);
 
-                    if (parentNode.gameObject.name == parentName)
+                    if (parentNode) //Default-constructed RDNode (if search fails) fails this test
                     {
+                        //Debug.Log("   --- parentnode: " + parentName);
+            
                         parentNode.children.Add(treeNode);
 
                         RDNode.Parent connection;
@@ -712,7 +715,7 @@ namespace ATC
                     }
                     else
                     {
-                        Debug.Log("ATC: Invalid parent node specified for: " + treeNode.gameObject.name + " parent: " + parentName);
+                        Debug.LogError("ATC: Invalid parent node specified for: " + treeNode.gameObject.name + " parent: " + parentName);
                     }
                 }
 
